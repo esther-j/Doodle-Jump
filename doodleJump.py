@@ -274,22 +274,10 @@ def playGameKeyPressed(event, data):
         # Doodle stops acceclaring in x-direction once reached max value
         if data.doodle.speedX >= 20:
             data.doodle.speedX = 20
-    if event.keysym == "Left":
+    elif event.keysym == "Left":
         data.doodle.speedX -= 5
         if data.doodle.speedX <= -20:
             data.doodle.speedX = -20
-    elif event.keysym == "r":
-        data.mode = 'startScreen'
-        data.doodle = Doodle(0, 0, 1.95, data.width/2, data.height/2, 20)
-        data.timeOnPlatform = 6
-        data.score = 0
-        data.scroll = 0
-        data.platforms = []
-        for platformNum in range(data.numPlatforms-1):
-            data.platforms.append(createPlatform(data, platformNum))
-        data.platforms.append(firstPlatform(data))
-        data.timerCalled = 0
-        data.playing = True
     data.doodle.checkShift()
 
 def playGameMousePressed(event, data):
@@ -357,8 +345,39 @@ def playGameRedrawAll(canvas, data):
     canvas.create_text(10, 10, text = "Score: "+str(data.score), \
                     anchor = NW, font = "Ariel 20 bold")
     if not data.playing:
-        canvas.create_text(data.width/2, data.height/2, text = "You Lose!!!\nPress 'r' to restart the game", 
-        font = "Arial "+str(int(data.width/35))+" bold", fill = 'black')
+        data.mode = 'pauseScreen'
+    
+    
+####################################
+# pauseScreen mode
+####################################  
+    
+def pauseScreenMousePressed(event, data):
+    pass    
+    
+def pauseScreenKeyPressed(event, data):
+    if event.keysym == "r":
+        data.mode = 'startScreen'
+        data.doodle = Doodle(0, 0, 1.95, data.width/2, data.height/2, 20)
+        data.timeOnPlatform = 6
+        data.score = 0
+        data.scroll = 0
+        data.platforms = []
+        for platformNum in range(data.numPlatforms-1):
+            data.platforms.append(createPlatform(data, platformNum))
+        data.platforms.append(firstPlatform(data))
+        data.timerCalled = 0
+        data.playing = True
+    data.doodle.checkShift()    
+    
+def pauseScreenRedrawAll(canvas, data):
+    canvas.create_text(data.width/2, data.height/2, 
+                        text = "You Lose!!!FinalScore:" + data.score + \
+                        "\nPress 'r' to restart the game", 
+                        font = "Arial "+str(int(data.width/35))+" bold", 
+                        fill = 'black')
+    
+    
     
 ####################################
 # helpScreen mode
@@ -383,6 +402,7 @@ def helpScreenRedrawAll(canvas, data):
     canvas.create_text(samplePowerUp.cx + samplePowerUp.width/2, samplePowerUp.cy,
     text = "     Power Up: Jumps higher than normal platform", 
     font = "Ariel 15 bold", anchor = W)
+
 
 #################################################################
 # use the run function as-is
