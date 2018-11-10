@@ -17,7 +17,9 @@ class GameRuntime(object):
 
         self.screenWidth = 1920
         self.screenHeight = 1080
-
+        self.moveRight = False
+        self.moveLeft = False
+        
         self.prevRightHandHeight = 0
         self.prevLeftHandHeight = 0
         self.curRightHandHeight = 0
@@ -92,13 +94,24 @@ class GameRuntime(object):
                         # calculate wing flap
                         self.rightFlap = (self.prevRightHandHeight - self.curRightHandHeight)
                         self.leftFlap = (self.prevLeftHandHeight - self.curLeftHandHeight)
-                        if math.isnan(self.rightFlap) or self.rightFlap < 0:
+                        if math.isnan(self.rightFlap) or self.rightFlap < 0 or math.isclose(self.rightFlap, 0):
                             self.rightFlap = 0
-                        elif math.isnan(self.leftFlap) or self.leftFlap < 0:
+                        elif math.isnan(self.leftFlap) or self.leftFlap < 0 or math.isclose(self.leftFlap, 0):
                             self.leftFlap = 0
+                        
+                        
+                        if self.leftFlap > 0.1 and self.moveRight == 0:
+                            self.moveLeft = True
+                            self.moveRight = False
+                        elif self.rightFlap > 0.1 and self.moveLeft == 0:
+                            self.moveRight = True
+                            self.moveLeft = False
+                        else:
+                            self.moveRight = False
+                            self.moveLeft = False
+                        print("left flap", self.moveLeft)
+                        print("right flap", self.moveRight)
                             
-                        print("left flap", self.leftFlap)
-                        print("right flap", self.rightFlap)
 
                         # cycle previous and current heights for next time
                         self.prevLeftHandHeight = self.curLeftHandHeight
