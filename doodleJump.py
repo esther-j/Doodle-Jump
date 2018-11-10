@@ -16,6 +16,14 @@ class Platforms(object):
         canvas.create_rectangle(self.cx - self.width/2, self.cy - self.height/2,
                                 self.cx + self.width/2, self.cy + self.height/2,
                                 fill = "green")
+        
+class PowerUp(Platforms):
+    
+    def draw(self, canvas):
+        super().draw(canvas)
+        canvas.create_oval(self.cx - self.height/2, self.cy - self.height/2,
+                            self.cx + self.height/2, self.cy + self.height/2,
+                            fill = "red")
     
 # Doodle character class    
 class Doodle(object):
@@ -92,7 +100,8 @@ def createPlatform(data, platformNum):
     cx = random.randint(data.widthPlatform // 2, \
             data.width - data.widthPlatform // 2)
     cy = platformNum * data.space
-    return Platforms(cx, cy)        
+    platformType = random.choice([Platforms, Platforms, PowerUp])
+    return platformType(cx, cy)      
 
     
 ####################################
