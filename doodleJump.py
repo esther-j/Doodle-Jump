@@ -1,41 +1,57 @@
-
 import random
 from tkinter import * 
+
+# Platform class
 class Platforms(object):
     
+    # Initialize values of class
     def __init__(self, cx, cy):
         self.width = 100
-        self.height = 30
+        self.height = 10
         self.cx = cx
         self.cy = cy
     
+    # Draw individual platforms
     def draw(self, canvas):
         canvas.create_rectangle(self.cx - self.width/2, self.cy - self.height/2,
                                 self.cx + self.width/2, self.cy + self.height/2,
                                 fill = "green")
     
-    
+# Doodle character class    
 class Doodle(object):
-    def __init__(self, speedY, speedX, acc, cx, cy, r):
+    
+    # Initialize values of class
+    def __init__(self, speedY, speedX, grav, cx, cy, r):
         self.speedY = speedY
         self.speedX = speedX
-        self.acc = acc
+        self.grav = grav
         self.cx = cx
         self.cy = cy
         self.r = r
-        
+    
+    # Function to check if doodle has landed on a platform    
     def distance(self, blockList):
-        hitBlockFlag = 0
-        for block in blockList:
-            if not abs(self.cx-block.cx) > block.width/8*3:
-                hitBlockFlag += 1
-        if hitBlockFlag != 1:
-            return False
-        return True
-        
+        for i in range(len(blockList)):
+            block = blockList[i]
+            if abs(self.cx-block.cx) < block.width/9*4:
+                
+                # Since iterating through platforms take time, modify the 
+                # checking bounds for platforms on top and bottom
+                
+                if i<4:
+                    if self.cy <= block.cy-block.height/2-self.r \
+                    and self.cy >= block.cy - block.height/2-2*self.r:
+                        return True
+                else:
+                    if self.cy <= block.cy-block.height/2-self.r \
+                    and self.cy >= block.cy - block.height/2-3.5*self.r:
+                        return True
+        return False
+    
+    # Draw the doodle character    
     def draw(self, canvas):
         canvas.create_oval(self.cx-self.r, self.cy-self.r, \
-                self.cx+self.r, self.cx+self.r, fill="yellow")
+                self.cx+self.r, self.cy+self.r, fill="yellow")
         
             
         
@@ -43,55 +59,169 @@ class Doodle(object):
 
 from tkinter import *
 
+####################################
+# init and various functions
+####################################
+
+
+# Initialize graphics data
 def init(data):
-    data.doodle = Doodle(-30, 0, -5, data.width/2, data.height-50, 3)
+    # Begin at start screen mode
+    data.mode = "startScreen"
+    
+    
+    data.doodle = Doodle(0, 0, 2, data.width/2, data.height/2, 10)
     data.score = 0
     data.timeCalled = 0
     data.scroll = 0
     data.widthPlatform = 8
     data.heightPlatform = 3
-    data.numPlatforms = 6
+    data.numPlatforms = 8
     data.space = data.height // data.numPlatforms
     data.platforms = []
-    for platformNum in range(data.numPlatforms):
-        data.platforms.append(createPlatform(data, platformNum))
-        
-        
+    for platformNum in range(data.numPlatforms-1):
+        data.platforms.append(createPlatform(data, platformNum))s
+    data.platforms.append(firstPlatform(data))
+    data.timerCalled = 0
+    
+    data.playing = True
+    
+# Make sure the first platform isn't too skewed from the center        
+def firstPlatform(data):
+    cx = random.randint(data.width/2-100, data.width/2+100)
+    cy = data.space*5
+    return Platforms(cx, cy)
+ 
+# Generate rest of platforms
 def createPlatform(data, platformNum):
-    cx = random.randint(data.widthPlatform // 2, data.width - data.widthPlatform // 2)
+    cx = random.randint(data.widthPlatform // 2, \
+            data.width - data.widthPlatform // 2)
     cy = platformNum * data.space
     return Platforms(cx, cy)        
-    
-def keyPressed(event, data):
-    if event.keysym == "Right":
-        data.doodle.speedX += 3
-    if event.keysym == "Left":
-        data.doodle.speedX -= 3
 
-def timerFired(data):
-    data.doodle.speedY += data.doodle.acc
-    data.doodle.cy -= data.doodle.speedY
-    if data.doodle.distance(data.platforms):
-        data.doodle.speedY = -30
-    data.scroll += 3
-    for platform in data.platforms:
-        platform.cy += 3
-        if platform.cy > data.height + platform.height/2:
-            data.platforms.remove(platform)
-            data.platforms.append(createPlatform(data, 0))
+    
+####################################
+# mode dispatcher
+####################################
+
+def mousePressed(event, data):
+    if data.mode == "startScreen": 
+        startScreenMousePressed(event, data)
+    elif data.mode == "playGame":   
+        playGameMousePressed(event, data)
+    elif data.mode == "help":       
+        helpMousePressed(event, data)
+    elif data.mode == "pauseScreen":
+        pauseScreenMousePressed(event, data)
+
+def keyPressed(event, data):
+    if data.mode == "startScreen": 
+        startScreenKeyPressed(event, data)
+    elif data.mode == "playGame":   
+        playGameKeyPressed(event, data)
+    elif data.mode == "help":       
+        helpKeyPressed(event, data)
+    elif data.mode == "pauseScreen":
+        pauseScreenKeyPressed(event, data)
 
 
 def redrawAll(canvas, data):
+    if data.mode == "startScreen": 
+        startScreenRedrawAll(canvas, data)
+    elif data.mode == "playGame":   
+        playGameRedrawAll(canvas, data)
+    elif data.mode == "help":       
+        helpRedrawAll(canvas, data)
+    elif data.mode == "pauseScreen":
+        pauseScreenRedrawAll
+        
+def timerFired(data):
+    if data.mode == "playGame":   
+        playGameTimerFired(data)
+        
+
+####################################
+# startScreen Mode
+####################################    
+
+def startScreenKeyPressed(event, data):
+    if event.keysym == 's':
+        data.mode = 'playGame'
+    if event.keysym == 'h':
+        data.mode = 'help'
+        
+def startScreenRedrawAll(canvas, data):
+    for platform in data.platforms:
+        platform.draw(canvas)
+        
+    # Determine font size according to window size                        
+    fontSizeSmall = int(data.width/35)
+    fontSizeBig = int(data.width/18)
+        
+    canvas.create_text(data.width/2, data.height*0.3,\
+        text = "DOODLE KINECT", font = "Arial "+str(fontSizeBig)+" bold", \
+        fill = 'black')
+    
+    canvas.create_text(data.width/2, data.height*0.4,\
+        text = "Press 's' to start the game! \n Press 'h' for instructions", \
+                       font = "Arial "+str(fontSizeSmall))
+
+
+
+####################################
+# playScreen mode
+####################################    
+
+# Keypressed Controller   
+def playGameKeyPressed(event, data):
+    if event.keysym == "Right":
+        data.doodle.speedX += 5
+        # Doodle stops acceclaring in x-direction once reached max value
+        if data.doodle.speedX >= 20:
+            data.doodle.speedX = 20
+    if event.keysym == "Left":
+        data.doodle.speedX -= 5
+        if data.doodle.speedX <= -20:
+            data.doodle.speedX = -20
+
+# Timer Fired Controller
+def playGameTimerFired(data):
+    if data.playing:
+        data.timerCalled += 1
+        # Check whether doodle lands on a platform
+        if data.doodle.distance(data.platforms):
+            data.doodle.speedY = -25
+            data.score += 1    # Update data score once doodle lands on platform
+            
+        # Doodle drops due to constance gravity
+        data.doodle.speedY += data.doodle.grav
+        data.doodle.cy += data.doodle.speedY
+        data.doodle.cx += data.doodle.speedX
+        data.scroll += 3
+        
+        # Check whether player has lost:
+        if data.doodle.cy+data.doodle.r > data.height:
+            data.playing = False
+        
+        # Scroll down screen and generate platforms
+        for platform in data.platforms:
+            platform.cy += 3
+            if platform.cy > data.height + platform.height/2:
+                data.platforms.remove(platform)
+                data.platforms.insert(0, createPlatform(data, 0))
+            
+
+# Redraw Viewer
+def playGameRedrawAll(canvas, data):
     for platform in data.platforms:
         platform.draw(canvas)
     data.doodle.draw(canvas)
+    canvas.create_text(50, 25, text = "Score: "+str(data.score), \
+                    font = "Ariel 12 bold")
+    if not data.playing:
+        canvas.create_text(data.width/2, data.height/2, text = "You Lose!!!", 
+        font = "Arial "+str(int(data.width/35))+" bold", fill = 'black')
     
-    
-        
-
-
-
-
 
 
 
