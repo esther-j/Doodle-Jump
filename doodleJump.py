@@ -51,6 +51,10 @@ class Doodle(object):
             print (self.cy, surfaceY)
             if self.cy <= surfaceY and self.cy + self.speedY >= surfaceY and \
                 abs(self.cx-block.cx) < block.width/2:
+                if type(block) == Platforms:
+                    self.jumpSpeed = -35
+                elif type(block) == PowerUp:
+                    self.jumpSpeed = -50
                 return surfaceY
         return None
     
@@ -318,10 +322,7 @@ def playGameTimerFired(data):
                 hit = True
         else:
             data.bg.update()
-
-        
-
-        
+            
         # Wrap around
         if data.doodle.cx < 0:
             data.doodle.cx = data.width
@@ -341,13 +342,13 @@ def playGameTimerFired(data):
                 Platforms.speedY = 0
         
         for platform in data.platforms:
-            platform.cy += Platforms.speedY
+            platform.cy += Platforms.speedY * (5/4)
             if platform.cy > data.height + platform.height/2:
                 data.platforms.remove(platform)
                 data.platforms.insert(0, createPlatform(data, 0))
         
         if not hit:    
-            data.doodle.cy += data.doodle.speedY + Platforms.speedY
+            data.doodle.cy += data.doodle.speedY * (3/5) + Platforms.speedY * (5/4)
 
 # Redraw Viewer
 def playGameRedrawAll(canvas, data):
