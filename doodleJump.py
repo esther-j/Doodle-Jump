@@ -28,6 +28,11 @@ class Doodle(object):
         self.cx = cx
         self.cy = cy
         self.r = r
+        self.jumpSpeed = -25
+        self.shiftx = 0
+
+    def getmove(self):
+        return (self.jumpSpeed, self.grav)
     
     # Function to check if doodle has landed on a platform    
     def distance(self, blockList):
@@ -44,12 +49,92 @@ class Doodle(object):
         return False
     
     # Draw the doodle character    
+    def drawEyes(self, canvas):
+        shift = self.shiftx
+        eyeSpace = self.r // (1.5 + abs(shift)*.5)
+        eyeHeight = self.r // 10
+        er = self.r // 4.2
+        x1 = self.cx - eyeSpace/2 - er + self.r*shift*.2
+        x2 = self.cx + eyeSpace/2 + er + self.r*shift*.2
+        y1 = self.cy - eyeHeight - er
+        y2 = self.cy - eyeHeight - er
+        canvas.create_oval(x1-er, y1-er, x1+er, y1+er, fill = 'white')
+        canvas.create_oval(x2-er, y2-er, x2+er, y2+er, fill = 'white')
+        pr = er // 2
+        ps = shift*.5*(pr-er)
+        canvas.create_oval(x1-pr-ps, y1-pr, x1+pr-ps, y1+pr, fill = 'black')
+        canvas.create_oval(x2-pr-ps, y2-pr, x2+pr-ps, y2+pr, fill = 'black')
+    
+    def drawMouth(self, canvas):
+        shift = self.shiftx
+        mr = self.r // 5
+        my = self.r // 5
+        ms = self.r*shift*.2
+        if self.speedY <= 15:
+            mouthA = 120
+            canvas.create_arc(self.cx-mr+ms, self.cy-mr-my, self.cx+mr+ms, self.cy+mr-my, \
+                                start = (mouthA-180)/2, extent = -mouthA, \
+                                style = 'arc', width = 2)
+        else:
+            canvas.create_oval(self.cx-mr*.6+ms, self.cy-mr/8-my, self.cx+mr*.6+ms, self.cy+mr-my, \
+                                fill = 'black')
+    
+    def checkShift(self):
+        if -5 <= self.speedX <= 5:
+            self.shiftx = 0
+        elif self.speedX > 5:
+            self.shiftx = 1
+        else:
+            self.shiftx = -1
+
+    
     def draw(self, canvas):
-        canvas.create_oval(self.cx-self.r, self.cy-self.r, \
-                self.cx+self.r, self.cy+self.r, fill="yellow")
+        r = self.r
+        # Draw Body
+        canvas.create_oval(self.cx-r, self.cy-r, self.cx+r, self.cy+r, fill = 'green')
+        self.drawEyes(canvas)
+        self.drawMouth(canvas)
         
+class Background:
+    def __init__(self, jumpy):
+        self.r = 200
+        self.g = 255
+        self.b = 200
+        self.change = 1
+        height, accel = jumpy.getmove()
+        self.degree = int(23 // (-height / accel))
+        self.color = '#c8ffc8'
+    
+    # Switch the color that's changing and how
+    def newChange(self):
+        newC = random.randint(0,2)
+        sign = -1**random.randint(0,1)
+        if self.change != newC or sign == -1:
+            self.change = newC
+            self.degree *= sign
+        else:
+            self.newChange()
+    
+    def update(self):
+        change = self.change
+        degree = self.degree
+        test = [self.r, self.g, self.b][change] + degree
+        if test > 255 or test < 200:
+            self.newChange()
+            self.update()
+        elif change == 0:
+            self.r += degree
+        elif change == 1:
+            self.g += degree
+        else:
+            self.b += degree
+        self.color = '#' + hex(self.r)[2:] + hex(self.g)[2:] + hex(self.b)[2:] 
             
-        
+    
+    def draw(self, data, canvas):
+        canvas.create_rectangle(0, 0, data.width, data.height,
+                                fill=self.color, width=0)
+                                
 #### Graphics Functions ####
 
 from tkinter import *
@@ -65,7 +150,7 @@ def init(data):
     data.mode = "startScreen"
     
     data.timeOnPlatform = 6
-    data.doodle = Doodle(0, 0, 1.95, data.width/2, data.height/2, 10)
+    data.doodle = Doodle(0, 0, 1.95, data.width/2, data.height/2, 20)
     data.score = 0
     data.timeCalled = 0
     data.scroll = 0
@@ -78,7 +163,7 @@ def init(data):
         data.platforms.append(createPlatform(data, platformNum))
     data.platforms.append(firstPlatform(data))
     data.timerCalled = 0
-    
+    data.bg = Background(data.doodle)
     data.playing = True
     
 # Make sure the first platform isn't too skewed from the center        
@@ -192,6 +277,7 @@ def playGameKeyPressed(event, data):
         data.platforms.append(firstPlatform(data))
         data.timerCalled = 0
         data.playing = True
+    data.doodle.checkShift()
 
 def playGameMousePressed(event, data):
     pass
@@ -205,7 +291,7 @@ def playGameTimerFired(data):
         # Check whether doodle lands on a platform
         if data.doodle.distance(data.platforms) and data.doodle.speedY > 0:
             data.timeOnPlatform = 0
-            data.doodle.speedY = -25
+            data.doodle.speedY = data.doodle.jumpSpeed
             data.score += 1    # Update data score once doodle lands on platform
             
         # Doodle drops due to constance gravity
@@ -230,6 +316,7 @@ def playGameTimerFired(data):
         for platform in data.platforms:
             if data.timeOnPlatform < 6:
                 platform.cy += 25
+                data.bg.update()
             else:
                 platform.cy += 3
             if platform.cy > data.height + platform.height/2:
@@ -239,6 +326,7 @@ def playGameTimerFired(data):
 
 # Redraw Viewer
 def playGameRedrawAll(canvas, data):
+    data.bg.draw(data, canvas)
     for platform in data.platforms:
         platform.draw(canvas)
     data.doodle.draw(canvas)
