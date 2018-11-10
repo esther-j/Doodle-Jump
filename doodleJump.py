@@ -36,11 +36,8 @@ class Doodle(object):
         self.cx = cx
         self.cy = cy
         self.r = r
-<<<<<<< HEAD
         self.jumpSpeed = -20
-=======
         self.jumpSpeed = -25
->>>>>>> b4a25fd8b6df244e3453fe7b35ff67e5b5e1bef0
         self.shiftx = 0
 
     def getmove(self):
