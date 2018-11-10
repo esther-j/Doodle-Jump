@@ -56,12 +56,15 @@ class Doodle(object):
     def distance(self, blockList):
         for block in set(blockList):
             surfaceY = block.cy-block.height/2-self.r
-            if self.cy <= surfaceY and self.cy + self.speedY >= surfaceY and \
+            if self.cy < surfaceY and self.cy + self.speedY > surfaceY and \
                 abs(self.cx-block.cx) < block.width/2:
                 if type(block) == Platforms or type(block) == MovingPlatforms:
                     self.jumpSpeed = -35
                 elif type(block) == PowerUp:
                     self.jumpSpeed = -55
+                elif type(block) == BreakingPlatforms:
+                    self.jumpSpeed = -35
+                    blockList.remove(block)
                 return surfaceY
         return None
     
@@ -197,7 +200,8 @@ def createPlatform(data, platformNum):
     cx = random.randint(data.widthPlatform/2, \
             data.width - data.widthPlatform/2)
     cy = platformNum * data.space
-    platformType = random.choice([Platforms, Platforms, Platforms, PowerUp, MovingPlatforms])
+    platformType = random.choice([Platforms, Platforms, Platforms, Platforms, \
+                                PowerUp, MovingPlatforms, BreakingPlatforms])
     return platformType(cx, cy)      
 
     
@@ -359,7 +363,7 @@ def playGameRedrawAll(canvas, data):
         platform.draw(canvas)
         if type(platform) == MovingPlatforms:
             platform.cx += platform.speed
-            if (platform.cx + platform.width / 2 > data.width and platform.speed > 0) or \
+            if (platform.cx + platform.width / 2 >= data.width and platform.speed > 0) or \
             (platform.cx - platform.width/2 <= 0 and platform.speed < 0):
                 platform.speed *= -1
     data.doodle.draw(canvas)
@@ -412,9 +416,10 @@ def helpScreenMousePressed(event, data):
     pass
 
 def helpScreenRedrawAll(canvas, data):
-    samplePlatform = Platforms(data.width/6, data.height/3)
+    samplePlatform = Platforms(data.width/6, data.height/4)
     samplePowerUp = PowerUp(data.width/6, samplePlatform.cy + samplePlatform.height * 2)
     sampleMoving = MovingPlatforms(data.width/6, samplePowerUp.cy + samplePowerUp.height * 2)
+    sampleBreaking = BreakingPlatforms(data.width/6, sampleMoving.cy + sampleMoving.height * 2)
     canvas.create_text(data.width/2, data.height/2, 
     text = "Use Left/Right keys to move the ball and stop it from falling!\nPress 'r' to go back to startScreen", font = "Ariel 15 bold")
     samplePlatform.draw(canvas)
@@ -427,6 +432,10 @@ def helpScreenRedrawAll(canvas, data):
     sampleMoving.draw(canvas)
     canvas.create_text(sampleMoving.cx + sampleMoving.width/2, sampleMoving.cy,
     text = "     Moving Platform: Moves in left/right direction", 
+    font = "Ariel 15 bold", anchor = W)
+    sampleBreaking.draw(canvas)
+    canvas.create_text(sampleBreaking.cx + sampleBreaking.width/2, sampleBreaking.cy,
+    text = "     Breaking Platform: Disappears after the ball hits it", 
     font = "Ariel 15 bold", anchor = W)
 
 
