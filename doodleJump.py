@@ -20,7 +20,6 @@ class Platforms(object):
                                 fill = self.color)
         
 class PowerUp(Platforms):
-    
     def __init__(self, cx, cy):
         super().__init__(cx, cy)
         self.color = "blue"
