@@ -25,11 +25,6 @@ class GameRuntime(object):
 
         self.gameover = False
 
-        self.pipeX = self.screenWidth
-        self.pipeOpening = random.randint(100, self.screenHeight)
-
-        self.birdHeight = self.screenHeight/2
-        self.flap = 0
 
         # Used to manage how fast the screen updates
         self.clock = pygame.time.Clock()
@@ -49,34 +44,6 @@ class GameRuntime(object):
         # here we will store skeleton data 
         self.bodies = None
 
-    def collision(self):
-        bird_x = int(self.screenWidth/2)
-        bird_y = int(self.screenHeight - self.birdHeight)
-    
-        if ((bird_x < self.pipeX + 240 and 
-             bird_x > self.pipeX - 40) and
-            (bird_y < self.pipeOpening - 110 or 
-             bird_y > self.pipeOpening + 110)):
-            self.gameover = True
-
-
-    def drawBird(self):
-        pygame.draw.circle(self.frameSurface, 
-                          (200,200,0), 
-                          (int(self.screenWidth/2), 
-                           int(self.screenHeight - self.birdHeight)), 40)
-
-    def drawPipes(self):
-        # top pipe
-        pygame.draw.rect(self.frameSurface, 
-                        (0, 150, 0), 
-                        (self.pipeX, 0, 200, self.pipeOpening - 150))
-
-        # bottom pipe
-        pygame.draw.rect(self.frameSurface, 
-                        (0, 150, 0), 
-                        (self.pipeX, self.pipeOpening + 150, 
-                         200, self.screenHeight))
 
     def drawColorFrame(self, frame, targetSurface):
         targetSurface.lock()
@@ -123,38 +90,19 @@ class GameRuntime(object):
                             self.curLeftHandHeight = joints[PyKinectV2.JointType_HandLeft].Position.y
 
                         # calculate wing flap
-                        self.flap = (self.prevLeftHandHeight - self.curLeftHandHeight) + (self.prevRightHandHeight - self.curRightHandHeight)
-                        if math.isnan(self.flap) or self.flap < 0:
-                            self.flap = 0
+                        self.rightFlap = (self.prevRightHandHeight - self.curRightHandHeight)
+                        self.leftFlap = (self.prevLeftHandHeight - self.curLeftHandHeight)
+                        if math.isnan(self.rightFlap) or self.rightFlap < 0:
+                            self.rightFlap = 0
+                        elif math.isnan(self.leftFlap) or self.leftFlap < 0:
+                            self.leftFlap = 0
+                            
+                        print("left flap", self.leftFlap)
+                        print("right flap", self.rightFlap)
 
                         # cycle previous and current heights for next time
                         self.prevLeftHandHeight = self.curLeftHandHeight
                         self.prevRightHandHeight = self.curRightHandHeight
-
-            # --- Game logic
-            self.birdHeight -= 5
-            self.birdHeight += self.flap * 300
-            if self.birdHeight <= 0:
-                # Don't let the bird fall off the bottom of the screen
-                self.birdHeight = 0
-            if self.birdHeight >= self.screenHeight:
-                # Don't let the bird fly off the top of the screen
-                self.birdHeight = self.screenHeight
-
-            # Move the pipes to the left
-            self.pipeX -= 5
-            # When the pipes are past the bird
-            if self.pipeX < 100:
-                # Reset the pipes back to the other end of the screen
-                self.pipeX = self.screenWidth
-                self.pipeOpening = random.randint(100, self.screenHeight)
-
-            # Draw graphics
-            self.drawBird()
-            self.drawPipes()
-
-            # Collision checking
-            self.collision()
 
             # Optional debugging text
             #font = pygame.font.Font(None, 36)
