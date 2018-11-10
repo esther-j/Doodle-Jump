@@ -24,7 +24,7 @@ class PowerUp(Platforms):
         canvas.create_oval(self.cx - self.height/2, self.cy - self.height/2,
                             self.cx + self.height/2, self.cy + self.height/2,
                             fill = "red")
-
+    
 # Doodle character class    
 class Doodle(object):
     
@@ -36,7 +36,11 @@ class Doodle(object):
         self.cx = cx
         self.cy = cy
         self.r = r
+<<<<<<< HEAD
         self.jumpSpeed = -20
+=======
+        self.jumpSpeed = -25
+>>>>>>> b4a25fd8b6df244e3453fe7b35ff67e5b5e1bef0
         self.shiftx = 0
 
     def getmove(self):
@@ -166,6 +170,7 @@ def init(data):
     data.doodle = Doodle(0, 0, 1.95, data.width/2, data.height/2, 20)
     data.score = 0
     data.timeCalled = 0
+    data.scroll = 0
     data.widthPlatform = 8
     data.heightPlatform = 3
     data.numPlatforms = 8
@@ -177,7 +182,6 @@ def init(data):
     data.timerCalled = 0
     data.bg = Background(data.doodle)
     data.playing = True
-    data.hit = False
     
 # Make sure the first platform isn't too skewed from the center        
 def firstPlatform(data):
@@ -187,7 +191,7 @@ def firstPlatform(data):
  
 # Generate rest of platforms
 def createPlatform(data, platformNum):
-    cx = random.randint(data.  widthPlatform // 2, \
+    cx = random.randint(data.widthPlatform // 2, \
             data.width - data.widthPlatform // 2)
     cy = platformNum * data.space
     platformType = random.choice([Platforms, Platforms, PowerUp])
@@ -282,7 +286,7 @@ def playGameKeyPressed(event, data):
             data.doodle.speedX = -20
     elif event.keysym == "r":
         data.mode = 'startScreen'
-        data.doodle = Doodle(0, 0, 2, data.width/2, data.height/2, 20)
+        data.doodle = Doodle(0, 0, 1.95, data.width/2, data.height/2, 20)
         data.timeOnPlatform = 6
         data.score = 0
         data.scroll = 0
@@ -345,8 +349,8 @@ def playGameRedrawAll(canvas, data):
     for platform in data.platforms:
         platform.draw(canvas)
     data.doodle.draw(canvas)
-    canvas.create_text(5, 5, text = "Score: "+str(data.score), \
-                    anchor = NW, font = "Ariel 20 bold")
+    canvas.create_text(50, 25, text = "Score: "+str(data.score), \
+                    font = "Ariel 12 bold")
     if not data.playing:
         canvas.create_text(data.width/2, data.height/2, text = "You Lose!!!\nPress 'r' to restart the game", 
         font = "Arial "+str(int(data.width/35))+" bold", fill = 'black')
