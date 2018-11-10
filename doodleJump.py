@@ -24,7 +24,7 @@ class PowerUp(Platforms):
         canvas.create_oval(self.cx - self.height/2, self.cy - self.height/2,
                             self.cx + self.height/2, self.cy + self.height/2,
                             fill = "red")
-    
+
 # Doodle character class    
 class Doodle(object):
     
@@ -36,7 +36,7 @@ class Doodle(object):
         self.cx = cx
         self.cy = cy
         self.r = r
-        self.jumpSpeed = -25
+        self.jumpSpeed = -22
         self.shiftx = 0
 
     def getmove(self):
@@ -161,7 +161,6 @@ def init(data):
     data.doodle = Doodle(0, 0, 1.95, data.width/2, data.height/2, 20)
     data.score = 0
     data.timeCalled = 0
-    data.scroll = 0
     data.widthPlatform = 8
     data.heightPlatform = 3
     data.numPlatforms = 8
@@ -182,7 +181,7 @@ def firstPlatform(data):
  
 # Generate rest of platforms
 def createPlatform(data, platformNum):
-    cx = random.randint(data.widthPlatform // 2, \
+    cx = random.randint(data.  widthPlatform // 2, \
             data.width - data.widthPlatform // 2)
     cy = platformNum * data.space
     platformType = random.choice([Platforms, Platforms, PowerUp])
@@ -277,10 +276,9 @@ def playGameKeyPressed(event, data):
             data.doodle.speedX = -20
     elif event.keysym == "r":
         data.mode = 'startScreen'
-        data.doodle = Doodle(0, 0, 1.95, data.width/2, data.height/2, 20)
+        data.doodle = Doodle(0, 0, 2, data.width/2, data.height/2, 20)
         data.timeOnPlatform = 6
         data.score = 0
-        data.scroll = 0
         data.platforms = []
         for platformNum in range(data.numPlatforms-1):
             data.platforms.append(createPlatform(data, platformNum))
@@ -299,7 +297,7 @@ def playGameTimerFired(data):
     if data.playing:
         data.timerCalled += 1
         # Check whether doodle lands on a platform
-        if data.doodle.distance(data.platforms) and data.doodle.speedY > 0:
+        if data.doodle.distance(data.platforms) and data.doodle.speedY > 0: 
             data.timeOnPlatform = 0
             data.doodle.speedY = data.doodle.jumpSpeed
             data.score += 1    # Update data score once doodle lands on platform
@@ -308,7 +306,6 @@ def playGameTimerFired(data):
         data.doodle.speedY += data.doodle.grav
         data.doodle.cy += data.doodle.speedY
         data.doodle.cx += data.doodle.speedX
-        data.scroll += 3
         
         # Wrap around
         if data.doodle.cx < 0:
@@ -328,7 +325,7 @@ def playGameTimerFired(data):
                 platform.cy += 25
                 data.bg.update()
             else:
-                platform.cy += 3
+                platform.cy += 4
             if platform.cy > data.height + platform.height/2:
                 data.platforms.remove(platform)
                 data.platforms.insert(0, createPlatform(data, 0))
@@ -340,8 +337,8 @@ def playGameRedrawAll(canvas, data):
     for platform in data.platforms:
         platform.draw(canvas)
     data.doodle.draw(canvas)
-    canvas.create_text(50, 25, text = "Score: "+str(data.score), \
-                    font = "Ariel 12 bold")
+    canvas.create_text(5, 5, text = "Score: "+str(data.score), \
+                    anchor = NW, font = "Ariel 20 bold")
     if not data.playing:
         canvas.create_text(data.width/2, data.height/2, text = "You Lose!!!\nPress 'r' to restart the game", 
         font = "Arial "+str(int(data.width/35))+" bold", fill = 'black')
