@@ -184,9 +184,7 @@ def playGameKeyPressed(event, data):
     elif event.keysym == "r":
         data.mode = 'startScreen'
         data.timeOnPlatform = 6
-        data.doodle = Doodle(0, 0, 1.95, data.width/2, data.height/2, 10)
         data.score = 0
-        data.timeCalled = 0
         data.scroll = 0
         data.platforms = []
         for platformNum in range(data.numPlatforms-1):
