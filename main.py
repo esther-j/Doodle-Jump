@@ -1,3 +1,5 @@
+# CREDIT: https://qwewy.gitbooks.io/pygame-module-manual/chapter1/the-mainloop.html
+import platforms
 import pygame
 
 pygame.init()
