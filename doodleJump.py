@@ -31,21 +31,16 @@ class Doodle(object):
     
     # Function to check if doodle has landed on a platform    
     def distance(self, blockList):
-        for i in range(len(blockList)):
-            block = blockList[i]
+        for block in set(blockList):
             if abs(self.cx-block.cx) < block.width/9*4:
                 
                 # Since iterating through platforms take time, modify the 
                 # checking bounds for platforms on top and bottom
                 
-                if i<4:
-                    if self.cy <= block.cy-block.height/2-self.r \
-                    and self.cy >= block.cy - block.height/2-2*self.r:
-                        return True
-                else:
-                    if self.cy <= block.cy-block.height/2-self.r \
-                    and self.cy >= block.cy - block.height/2-3.5*self.r:
-                        return True
+                if self.cy <= block.cy-block.height/2-self.r \
+                and self.cy >= block.cy - block.height/2-3.2*self.r:
+                    return True
+
         return False
     
     # Draw the doodle character    
@@ -69,8 +64,8 @@ def init(data):
     # Begin at start screen mode
     data.mode = "startScreen"
     
-    
-    data.doodle = Doodle(0, 0, 2, data.width/2, data.height/2, 10)
+    data.timeOnPlatform = 6
+    data.doodle = Doodle(0, 0, 1.95, data.width/2, data.height/2, 10)
     data.score = 0
     data.timeCalled = 0
     data.scroll = 0
@@ -80,7 +75,7 @@ def init(data):
     data.space = data.height // data.numPlatforms
     data.platforms = []
     for platformNum in range(data.numPlatforms-1):
-        data.platforms.append(createPlatform(data, platformNum))s
+        data.platforms.append(createPlatform(data, platformNum))
     data.platforms.append(firstPlatform(data))
     data.timerCalled = 0
     
@@ -89,7 +84,7 @@ def init(data):
 # Make sure the first platform isn't too skewed from the center        
 def firstPlatform(data):
     cx = random.randint(data.width/2-100, data.width/2+100)
-    cy = data.space*5
+    cy = data.space*7
     return Platforms(cx, cy)
  
 # Generate rest of platforms
@@ -166,6 +161,9 @@ def startScreenRedrawAll(canvas, data):
         text = "Press 's' to start the game! \n Press 'h' for instructions", \
                        font = "Arial "+str(fontSizeSmall))
 
+def startScreenMousePressed(event, data):
+    pass
+        
 
 
 ####################################
@@ -186,10 +184,13 @@ def playGameKeyPressed(event, data):
 
 # Timer Fired Controller
 def playGameTimerFired(data):
+    if data.timeOnPlatform < 6:
+        data.timeOnPlatform += 1
     if data.playing:
         data.timerCalled += 1
         # Check whether doodle lands on a platform
         if data.doodle.distance(data.platforms):
+            data.timeOnPlatform = 0
             data.doodle.speedY = -25
             data.score += 1    # Update data score once doodle lands on platform
             
@@ -199,13 +200,24 @@ def playGameTimerFired(data):
         data.doodle.cx += data.doodle.speedX
         data.scroll += 3
         
+        # Wrap around
+        if data.doodle.cx < 0:
+            print("checking")
+            data.doodle.cx = data.width
+        elif data.doodle.cx > data.width:
+            print("checking again")
+            data.doodle.cx = 0
+        
         # Check whether player has lost:
         if data.doodle.cy+data.doodle.r > data.height:
             data.playing = False
         
         # Scroll down screen and generate platforms
         for platform in data.platforms:
-            platform.cy += 3
+            if data.timeOnPlatform < 6:
+                platform.cy += 20
+            else:
+                platform.cy += 3
             if platform.cy > data.height + platform.height/2:
                 data.platforms.remove(platform)
                 data.platforms.insert(0, createPlatform(data, 0))
