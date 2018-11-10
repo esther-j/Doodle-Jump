@@ -205,6 +205,8 @@ def mousePressed(event, data):
         helpScreenMousePressed(event, data)
     elif data.mode == "pauseScreen":
         pauseScreenMousePressed(event, data)
+    elif data.mode == 'endGame':
+        endGameMousePressed(event, data)
 
 def keyPressed(event, data):
     if data.mode == "startScreen": 
@@ -215,6 +217,8 @@ def keyPressed(event, data):
         helpScreenKeyPressed(event, data)
     elif data.mode == "pauseScreen":
         pauseScreenKeyPressed(event, data)
+    elif data.mode == 'endGame':
+        endGameKeyPressed(event, data)
 
 
 def redrawAll(canvas, data):
@@ -225,7 +229,9 @@ def redrawAll(canvas, data):
     elif data.mode == "help":       
         helpScreenRedrawAll(canvas, data)
     elif data.mode == "pauseScreen":
-        pauseScreenRedrawAll
+        pauseScreenRedrawAll(canvas, data)
+    elif data.mode == 'endGame':
+        endGameRedrawAll(canvas, data)
         
 def timerFired(data):
     if data.mode == "playGame":   
@@ -316,7 +322,8 @@ def playGameTimerFired(data):
         
         # Check whether player has lost:
         if data.doodle.cy+data.doodle.r > data.height:
-            data.playing = False
+            #data.playing = False
+            data.mode = 'endGame'
         
         # Scroll down screen and generate platforms
         if data.doodle.cy <= data.height / 3:
@@ -349,13 +356,13 @@ def playGameRedrawAll(canvas, data):
     
     
 ####################################
-# pauseScreen mode
+# endGame mode
 ####################################  
     
-def pauseScreenMousePressed(event, data):
+def endGameMousePressed(event, data):
     pass    
     
-def pauseScreenKeyPressed(event, data):
+def endGameKeyPressed(event, data):
     if event.keysym == "r":
         data.mode = 'startScreen'
         data.doodle = Doodle(0, 0, 1.95, data.width/2, data.height/2, 20)
@@ -370,11 +377,11 @@ def pauseScreenKeyPressed(event, data):
         data.playing = True
     data.doodle.checkShift()    
     
-def pauseScreenRedrawAll(canvas, data):
+def endGameRedrawAll(canvas, data):
     canvas.create_text(data.width/2, data.height/2, 
-                        text = "You Lose!!!FinalScore:" + data.score + \
+                        text = "You Lose!!!\nFinalScore: " + str(data.score) + \
                         "\nPress 'r' to restart the game", 
-                        font = "Arial "+str(int(data.width/35))+" bold", 
+                        font = "Arial "+str(int(data.width/15))+" bold", 
                         fill = 'black')
     
     
