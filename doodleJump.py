@@ -372,9 +372,17 @@ def helpScreenMousePressed(event, data):
     pass
 
 def helpScreenRedrawAll(canvas, data):
+    samplePlatform = Platforms(data.width/6, data.height/3)
+    samplePowerUp = PowerUp(data.width/6, samplePlatform.cy + samplePlatform.height * 2)
     canvas.create_text(data.width/2, data.height/2, 
     text = "Use Left/Right keys to move the ball and stop it from falling!\nPress 'r' to go back to startScreen", font = "Ariel 15 bold")
-
+    samplePlatform.draw(canvas)
+    canvas.create_text(samplePlatform.cx + samplePlatform.width/2, samplePlatform.cy,
+    text = "     Normal Platform: Jumps in normal height", font = "Ariel 15 bold", anchor = W)
+    samplePowerUp.draw(canvas)
+    canvas.create_text(samplePowerUp.cx + samplePowerUp.width/2, samplePowerUp.cy,
+    text = "     Power Up: Jumps higher than normal platform", 
+    font = "Ariel 15 bold", anchor = W)
 
 #################################################################
 # use the run function as-is
