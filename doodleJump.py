@@ -105,7 +105,7 @@ def mousePressed(event, data):
     elif data.mode == "playGame":   
         playGameMousePressed(event, data)
     elif data.mode == "help":       
-        helpMousePressed(event, data)
+        helpScreenMousePressed(event, data)
     elif data.mode == "pauseScreen":
         pauseScreenMousePressed(event, data)
 
@@ -115,7 +115,7 @@ def keyPressed(event, data):
     elif data.mode == "playGame":   
         playGameKeyPressed(event, data)
     elif data.mode == "help":       
-        helpKeyPressed(event, data)
+        helpScreenKeyPressed(event, data)
     elif data.mode == "pauseScreen":
         pauseScreenKeyPressed(event, data)
 
@@ -126,7 +126,7 @@ def redrawAll(canvas, data):
     elif data.mode == "playGame":   
         playGameRedrawAll(canvas, data)
     elif data.mode == "help":       
-        helpRedrawAll(canvas, data)
+        helpScreenRedrawAll(canvas, data)
     elif data.mode == "pauseScreen":
         pauseScreenRedrawAll
         
@@ -181,6 +181,8 @@ def playGameKeyPressed(event, data):
         data.doodle.speedX -= 5
         if data.doodle.speedX <= -20:
             data.doodle.speedX = -20
+    elif event.keysym == "r":
+        data.mode = 'startScreen'
 
 # Timer Fired Controller
 def playGameTimerFired(data):
@@ -231,10 +233,23 @@ def playGameRedrawAll(canvas, data):
     canvas.create_text(50, 25, text = "Score: "+str(data.score), \
                     font = "Ariel 12 bold")
     if not data.playing:
-        canvas.create_text(data.width/2, data.height/2, text = "You Lose!!!", 
+        canvas.create_text(data.width/2, data.height/2, text = "You Lose!!!\nPress 'r' to restart the game", 
         font = "Arial "+str(int(data.width/35))+" bold", fill = 'black')
     
+####################################
+# helpScreen mode
+####################################    
 
+def helpScreenKeyPressed(event, data):
+    if event.keysym == "r":
+        data.mode = 'startScreen'
+
+def helpScreenMousePressed(event, data):
+    pass
+
+def helpScreenRedrawAll(canvas, data):
+    canvas.create_text(data.width/2, data.height/2, 
+    text = "Use Left/Right keys to move the ball and stop it from falling!\nPress 'r' to go back to startScreen", font = "Ariel 15 bold")
 
 
 #################################################################
