@@ -1,8 +1,10 @@
+
 import random
 from tkinter import * 
 
 # Platform class
 class Platforms(object):
+    speedY = 0
     
     # Initialize values of class
     def __init__(self, cx, cy):
@@ -10,24 +12,34 @@ class Platforms(object):
         self.height = 10
         self.cx = cx
         self.cy = cy
+        self.color = "orange"
     
     # Draw individual platforms
     def draw(self, canvas):
         canvas.create_rectangle(self.cx - self.width/2, self.cy - self.height/2,
                                 self.cx + self.width/2, self.cy + self.height/2,
-                                fill = "green")
+                                fill = self.color)
         
 class PowerUp(Platforms):
     
-    def draw(self, canvas):
-        super().draw(canvas)
-        canvas.create_oval(self.cx - self.height/2, self.cy - self.height/2,
-                            self.cx + self.height/2, self.cy + self.height/2,
-                            fill = "red")
-    
+    def __init__(self, cx, cy):
+        super().__init__(cx, cy)
+        self.color = "blue"
+
+class MovingPlatforms(Platforms):
+    def __init__(self, cx, cy):
+        super().__init__(cx, cy)
+        self.color = "pink"
+        self.speed = random.randint(3, 7)
+        
+class BreakingPlatforms(Platforms):
+    def __init__(self, cx, cy):
+        super().__init__(cx, cy)
+        self.color = "Red"   
+         
 # Doodle character class    
 class Doodle(object):
-    
+#     
     # Initialize values of class
     def __init__(self, speedY, speedX, grav, cx, cy, r):
         self.speedY = speedY
@@ -36,7 +48,7 @@ class Doodle(object):
         self.cx = cx
         self.cy = cy
         self.r = r
-        self.jumpSpeed = -25
+        self.jumpSpeed = -35
         self.shiftx = 0
 
     def getmove(self):
@@ -45,27 +57,25 @@ class Doodle(object):
     # Function to check if doodle has landed on a platform    
     def distance(self, blockList):
         for block in set(blockList):
-            if abs(self.cx-block.cx) < block.width/9*4:
-                
-                # Since iterating through platforms take time, modify the 
-                # checking bounds for platforms on top and bottom
-                
-                if self.cy <= block.cy-block.height/2-self.r \
-                and self.cy >= block.cy - block.height/2-3.2*self.r:
-                    if type(block) == Platforms:
-                        self.jumpSpeed = -25
-                    else:
-                        self.jumpSpeed = -50
-                    return True
-
-        return False
+            surfaceY = block.cy-block.height/2-self.r
+            if self.cy <= surfaceY and self.cy + self.speedY >= surfaceY and \
+                abs(self.cx-block.cx) < block.width/2:
+                if type(block) == Platforms or type(block) == MovingPlatforms:
+                    self.jumpSpeed = -35
+                elif type(block) == PowerUp:
+                    self.jumpSpeed = -55
+                return surfaceY
+        return None
     
     # Draw the doodle character    
     def drawEyes(self, canvas):
         shift = self.shiftx
         eyeSpace = self.r // (1.5 + abs(shift)*.5)
         eyeHeight = self.r // 10
-        er = self.r // 4.2
+        if self.speedY <= 20:
+            er = self.r // 4.2
+        else:
+            er = self.r //3.8
         x1 = self.cx - eyeSpace/2 - er + self.r*shift*.2
         x2 = self.cx + eyeSpace/2 + er + self.r*shift*.2
         y1 = self.cy - eyeHeight - er
@@ -186,10 +196,10 @@ def firstPlatform(data):
  
 # Generate rest of platforms
 def createPlatform(data, platformNum):
-    cx = random.randint(data.widthPlatform // 2, \
-            data.width - data.widthPlatform // 2)
+    cx = random.randint(data.widthPlatform//2, \
+            data.width - data.widthPlatform//2)
     cy = platformNum * data.space
-    platformType = random.choice([Platforms, Platforms, PowerUp])
+    platformType = random.choice([Platforms, Platforms, Platforms, PowerUp, MovingPlatforms])
     return platformType(cx, cy)      
 
     
@@ -206,6 +216,8 @@ def mousePressed(event, data):
         helpScreenMousePressed(event, data)
     elif data.mode == "pauseScreen":
         pauseScreenMousePressed(event, data)
+    elif data.mode == 'endGame':
+        endGameMousePressed(event, data)
 
 def keyPressed(event, data):
     if data.mode == "startScreen": 
@@ -216,6 +228,8 @@ def keyPressed(event, data):
         helpScreenKeyPressed(event, data)
     elif data.mode == "pauseScreen":
         pauseScreenKeyPressed(event, data)
+    elif data.mode == 'endGame':
+        endGameKeyPressed(event, data)
 
 
 def redrawAll(canvas, data):
@@ -226,7 +240,9 @@ def redrawAll(canvas, data):
     elif data.mode == "help":       
         helpScreenRedrawAll(canvas, data)
     elif data.mode == "pauseScreen":
-        pauseScreenRedrawAll
+        pauseScreenRedrawAll(canvas, data)
+    elif data.mode == 'endGame':
+        endGameRedrawAll(canvas, data)
         
 def timerFired(data):
     if data.mode == "playGame":   
@@ -275,11 +291,95 @@ def playGameKeyPressed(event, data):
         # Doodle stops acceclaring in x-direction once reached max value
         if data.doodle.speedX >= 20:
             data.doodle.speedX = 20
-    if event.keysym == "Left":
+    elif event.keysym == "Left":
         data.doodle.speedX -= 5
         if data.doodle.speedX <= -20:
             data.doodle.speedX = -20
-    elif event.keysym == "r":
+    data.doodle.checkShift()
+
+def playGameMousePressed(event, data):
+    pass
+
+# Timer Fired Controller
+def playGameTimerFired(data):
+
+    if data.timeOnPlatform < 6:
+        data.timeOnPlatform += 1
+    if data.playing:
+        hit = False
+        data.timerCalled += 1
+        # Check whether doodle lands on a platform
+        # Doodle drops due to constance gravity
+        data.doodle.speedY += data.doodle.grav
+        data.doodle.cx += data.doodle.speedX
+        data.scroll += 3
+        
+        if data.doodle.speedY > 0:
+            height = data.doodle.distance(data.platforms)
+            if height:
+                data.timeOnPlatform = -1
+                data.doodle.speedY = data.doodle.jumpSpeed
+                data.doodle.cy = height
+                data.bg.newChange()
+                hit = True
+        else:
+            data.bg.update()
+            
+        # Wrap around
+        if data.doodle.cx < 0:
+            data.doodle.cx = data.width
+        elif data.doodle.cx > data.width:
+            data.doodle.cx = 0
+        
+        # Check whether player has lost:
+        if data.doodle.cy+data.doodle.r > data.height:
+            #data.playing = False
+            data.mode = 'endGame'
+        
+        # Scroll down screen and generate platforms
+        if data.doodle.cy <= data.height / 3:
+            Platforms.speedY += 2
+        elif Platforms.speedY > 0:
+            Platforms.speedY -= 3
+            if Platforms.speedY < 0:
+                Platforms.speedY = 0
+        
+        for platform in data.platforms:
+            platform.cy += Platforms.speedY * (5/4)
+            if platform.cy > data.height + platform.height/2:
+                data.platforms.remove(platform)
+                data.platforms.insert(0, createPlatform(data, 0))
+                data.score += 1
+        
+        if not hit:    
+            data.doodle.cy += data.doodle.speedY * (3/5) + Platforms.speedY * (5/4)
+
+# Redraw Viewer
+def playGameRedrawAll(canvas, data):
+    data.bg.draw(data, canvas)
+    for platform in data.platforms:
+        platform.draw(canvas)
+        if type(platform) == MovingPlatforms:
+            platform.cx += platform.speed
+            if platform.cx + platform.width / 2 > data.width or \
+            platform.cx - platform.width/2 <= 0:
+                platform.speed *= -1
+    data.doodle.draw(canvas)
+    canvas.create_text(10, 10, text = "Score: "+str(data.score), \
+                    anchor = NW, font = "Ariel 20 bold")
+    if not data.playing:
+        data.mode = 'pauseScreen'
+    
+    
+####################################
+# endGame mode
+####################################  
+    
+def endGameMousePressed(event, data):
+    pass    
+    
+def endGameKeyPressed(event, data):
+    if event.keysym == "r":
         data.mode = 'startScreen'
         data.doodle = Doodle(0, 0, 1.95, data.width/2, data.height/2, 20)
         data.timeOnPlatform = 6
@@ -290,67 +390,17 @@ def playGameKeyPressed(event, data):
             data.platforms.append(createPlatform(data, platformNum))
         data.platforms.append(firstPlatform(data))
         data.timerCalled = 0
-
-        init(data)
         data.playing = True
-    data.doodle.checkShift()
-
-def playGameMousePressed(event, data):
-    pass
-
-# Timer Fired Controller
-def playGameTimerFired(data):
-    if data.timeOnPlatform < 6:
-        data.timeOnPlatform += 1
-    if data.playing:
-        data.timerCalled += 1
-        # Check whether doodle lands on a platform
-        if data.doodle.distance(data.platforms) and data.doodle.speedY > 0:
-            data.timeOnPlatform = 0
-            data.doodle.speedY = data.doodle.jumpSpeed
-            data.score += 1    # Update data score once doodle lands on platform
-            
-        # Doodle drops due to constance gravity
-        data.doodle.speedY += data.doodle.grav
-        data.doodle.cy += data.doodle.speedY
-        data.doodle.cx += data.doodle.speedX
-        data.scroll += 3
-        
-        # Wrap around
-        if data.doodle.cx < 0:
-            print("checking")
-            data.doodle.cx = data.width
-        elif data.doodle.cx > data.width:
-            print("checking again")
-            data.doodle.cx = 0
-        
-        # Check whether player has lost:
-        if data.doodle.cy+data.doodle.r > data.height:
-            data.playing = False
-        
-        # Scroll down screen and generate platforms
-        for platform in data.platforms:
-            if data.timeOnPlatform < 6:
-                platform.cy += 25
-                data.bg.update()
-            else:
-                platform.cy += 3
-            if platform.cy > data.height + platform.height/2:
-                data.platforms.remove(platform)
-                data.platforms.insert(0, createPlatform(data, 0))
+    data.doodle.checkShift()    
     
-
-# Redraw Viewer
-def playGameRedrawAll(canvas, data):
-    data.bg.draw(data, canvas)
-    for platform in data.platforms:
-        platform.draw(canvas)
-    data.doodle.draw(canvas)
-    canvas.create_text(50, 25, text = "Score: "+str(data.score), \
-                    font = "Ariel 12 bold")
-    if not data.playing:
-        canvas.create_text(data.width/2, data.height/2, text = "You Lose!!!\nPress 'r' to restart the game", 
-        font = "Arial "+str(int(data.width/35))+" bold", fill = 'black')
+def endGameRedrawAll(canvas, data):
+    canvas.create_text(data.width/2, data.height/2, 
+                        text = "You Lose!!!\nFinal Score: " + str(data.score) + \
+                        "\nPress 'r' to restart the game", 
+                        font = "Arial "+str(int(data.width/15))+" bold", 
+                        fill = 'black')
+    
+    
     
 ####################################
 # helpScreen mode
@@ -364,8 +414,22 @@ def helpScreenMousePressed(event, data):
     pass
 
 def helpScreenRedrawAll(canvas, data):
+    samplePlatform = Platforms(data.width/6, data.height/3)
+    samplePowerUp = PowerUp(data.width/6, samplePlatform.cy + samplePlatform.height * 2)
+    sampleMoving = MovingPlatforms(data.width/6, samplePowerUp.cy + samplePowerUp.height * 2)
     canvas.create_text(data.width/2, data.height/2, 
     text = "Use Left/Right keys to move the ball and stop it from falling!\nPress 'r' to go back to startScreen", font = "Ariel 15 bold")
+    samplePlatform.draw(canvas)
+    canvas.create_text(samplePlatform.cx + samplePlatform.width/2, samplePlatform.cy,
+    text = "     Normal Platform: Jumps in normal height", font = "Ariel 15 bold", anchor = W)
+    samplePowerUp.draw(canvas)
+    canvas.create_text(samplePowerUp.cx + samplePowerUp.width/2, samplePowerUp.cy,
+    text = "     Power Up: Jumps higher than normal platform", 
+    font = "Ariel 15 bold", anchor = W)
+    sampleMoving.draw(canvas)
+    canvas.create_text(sampleMoving.cx + sampleMoving.width/2, sampleMoving.cy,
+    text = "     Moving Platform: Moves in left/right direction", 
+    font = "Ariel 15 bold", anchor = W)
 
 
 #################################################################
