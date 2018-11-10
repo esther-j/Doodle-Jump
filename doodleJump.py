@@ -277,7 +277,7 @@ def playGameKeyPressed(event, data):
             data.doodle.speedX = -20
     elif event.keysym == "r":
         data.mode = 'startScreen'
-        data.doodle = Doodle(0, 0, 1.95, data.width/2, data.height/2, 10)
+        data.doodle = Doodle(0, 0, 1.95, data.width/2, data.height/2, 20)
         data.timeOnPlatform = 6
         data.score = 0
         data.scroll = 0
