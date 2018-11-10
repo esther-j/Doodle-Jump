@@ -189,7 +189,7 @@ def playGameTimerFired(data):
     if data.playing:
         data.timerCalled += 1
         # Check whether doodle lands on a platform
-        if data.doodle.distance(data.platforms):
+        if data.doodle.distance(data.platforms) and data.doodle.speedY > 0:
             data.timeOnPlatform = 0
             data.doodle.speedY = -25
             data.score += 1    # Update data score once doodle lands on platform
@@ -215,7 +215,7 @@ def playGameTimerFired(data):
         # Scroll down screen and generate platforms
         for platform in data.platforms:
             if data.timeOnPlatform < 6:
-                platform.cy += 20
+                platform.cy += 25
             else:
                 platform.cy += 3
             if platform.cy > data.height + platform.height/2:
