@@ -191,7 +191,7 @@ def playGameKeyPressed(event, data):
             data.platforms.append(createPlatform(data, platformNum))
         data.platforms.append(firstPlatform(data))
         data.timerCalled = 0
-        data.playing = True
+        init(data)
 
 def playGameMousePressed(event, data):
     pass
@@ -235,7 +235,7 @@ def playGameTimerFired(data):
             if platform.cy > data.height + platform.height/2:
                 data.platforms.remove(platform)
                 data.platforms.insert(0, createPlatform(data, 0))
-            
+    
 
 # Redraw Viewer
 def playGameRedrawAll(canvas, data):
