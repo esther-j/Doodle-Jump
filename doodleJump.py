@@ -3,6 +3,7 @@ from tkinter import *
 
 # Platform class
 class Platforms(object):
+    speedY = 0
     
     # Initialize values of class
     def __init__(self, cx, cy):
@@ -36,7 +37,7 @@ class Doodle(object):
         self.cx = cx
         self.cy = cy
         self.r = r
-        self.jumpSpeed = -25
+        self.jumpSpeed = -35
         self.shiftx = 0
 
     def getmove(self):
@@ -44,8 +45,10 @@ class Doodle(object):
     
     # Function to check if doodle has landed on a platform    
     def distance(self, blockList):
+        print('go')
         for block in set(blockList):
             surfaceY = block.cy-block.height/2-self.r
+            print (self.cy, surfaceY)
             if self.cy <= surfaceY and self.cy + self.speedY >= surfaceY and \
                 abs(self.cx-block.cx) < block.width/2:
                 return surfaceY
@@ -171,7 +174,6 @@ def init(data):
     data.timerCalled = 0
     data.bg = Background(data.doodle)
     data.playing = True
-    data.hit = False
     
 # Make sure the first platform isn't too skewed from the center        
 def firstPlatform(data):
@@ -293,12 +295,18 @@ def playGameMousePressed(event, data):
 
 # Timer Fired Controller
 def playGameTimerFired(data):
+
     if data.timeOnPlatform < 6:
         data.timeOnPlatform += 1
     if data.playing:
-        data.hit = False
+        hit = False
         data.timerCalled += 1
         # Check whether doodle lands on a platform
+        # Doodle drops due to constance gravity
+        data.doodle.speedY += data.doodle.grav
+        data.doodle.cx += data.doodle.speedX
+        data.scroll += 3
+        
         if data.doodle.speedY > 0:
             height = data.doodle.distance(data.platforms)
             if height:
@@ -307,14 +315,12 @@ def playGameTimerFired(data):
                 data.score += 1    # Update data score once doodle lands on platform
                 data.doodle.cy = height
                 data.bg.newChange()
-                data.hit = True
+                hit = True
+        else:
+            data.bg.update()
+
         
-        if not data.hit:    
-            # Doodle drops due to constance gravity
-            data.doodle.speedY += data.doodle.grav
-            data.doodle.cy += data.doodle.speedY
-            data.doodle.cx += data.doodle.speedX
-            data.scroll += 3
+
         
         # Wrap around
         if data.doodle.cx < 0:
@@ -327,16 +333,21 @@ def playGameTimerFired(data):
             data.playing = False
         
         # Scroll down screen and generate platforms
+        if data.doodle.cy <= data.height / 3:
+            Platforms.speedY += 2
+        elif Platforms.speedY > 0:
+            Platforms.speedY -= 3
+            if Platforms.speedY < 0:
+                Platforms.speedY = 0
+        
         for platform in data.platforms:
-            if data.timeOnPlatform < 6:
-                platform.cy += 25
-                data.bg.update()
-            else:
-                platform.cy += 3
+            platform.cy += Platforms.speedY
             if platform.cy > data.height + platform.height/2:
                 data.platforms.remove(platform)
                 data.platforms.insert(0, createPlatform(data, 0))
-            
+        
+        if not hit:    
+            data.doodle.cy += data.doodle.speedY + Platforms.speedY
 
 # Redraw Viewer
 def playGameRedrawAll(canvas, data):
