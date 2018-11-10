@@ -184,6 +184,9 @@ def playGameKeyPressed(event, data):
     elif event.keysym == "r":
         data.mode = 'startScreen'
 
+def playGameMousePressed(event, data):
+    pass
+
 # Timer Fired Controller
 def playGameTimerFired(data):
     if data.timeOnPlatform < 6:
