@@ -181,6 +181,8 @@ def playGameKeyPressed(event, data):
         data.doodle.speedX -= 5
         if data.doodle.speedX <= -20:
             data.doodle.speedX = -20
+    elif event.keysym == "r":
+        data.mode = 'startScreen'
 
 # Timer Fired Controller
 def playGameTimerFired(data):
@@ -231,7 +233,7 @@ def playGameRedrawAll(canvas, data):
     canvas.create_text(50, 25, text = "Score: "+str(data.score), \
                     font = "Ariel 12 bold")
     if not data.playing:
-        canvas.create_text(data.width/2, data.height/2, text = "You Lose!!!", 
+        canvas.create_text(data.width/2, data.height/2, text = "You Lose!!!\nPress 'r' to restart the game", 
         font = "Arial "+str(int(data.width/35))+" bold", fill = 'black')
     
 ####################################
