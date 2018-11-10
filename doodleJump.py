@@ -48,6 +48,10 @@ class Doodle(object):
             surfaceY = block.cy-block.height/2-self.r
             if self.cy <= surfaceY and self.cy + self.speedY >= surfaceY and \
                 abs(self.cx-block.cx) < block.width/2:
+                if type(block) == Platforms:
+                    self.jumpSpeed = -25
+                elif type(block) == PowerUp:
+                    self.jumpSpeed = -50
                 return surfaceY
         return None
     
