@@ -56,7 +56,10 @@ class Doodle(object):
         shift = self.shiftx
         eyeSpace = self.r // (1.5 + abs(shift)*.5)
         eyeHeight = self.r // 10
-        er = self.r // 4.2
+        if self.speedY <= 20:
+            er = self.r // 4.2
+        else:
+            er = self.r //3.8
         x1 = self.cx - eyeSpace/2 - er + self.r*shift*.2
         x2 = self.cx + eyeSpace/2 + er + self.r*shift*.2
         y1 = self.cy - eyeHeight - er
@@ -303,6 +306,7 @@ def playGameTimerFired(data):
                 data.doodle.speedY = data.doodle.jumpSpeed
                 data.score += 1    # Update data score once doodle lands on platform
                 data.doodle.cy = height
+                data.bg.newChange()
                 data.hit = True
         
         if not data.hit:    
