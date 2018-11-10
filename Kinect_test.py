@@ -85,9 +85,9 @@ class GameRuntime(object):
                         joints = body.joints 
                         # save the hand positions
                         if joints[PyKinectV2.JointType_HandLeft].TrackingState != PyKinectV2.TrackingState_NotTracked:
-                            self.curRightHandHeight = joints[PyKinectV2.JointType_HandLeft].Position.y
+                            self.curLeftHandHeight = joints[PyKinectV2.JointType_HandLeft].Position.y
                         if joints[PyKinectV2.JointType_HandRight].TrackingState != PyKinectV2.TrackingState_NotTracked:
-                            self.curLeftHandHeight = joints[PyKinectV2.JointType_HandRight].Position.y
+                            self.curRightHandHeight = joints[PyKinectV2.JointType_HandRight].Position.y
 
                         # calculate wing flap
                         self.rightFlap = (self.prevRightHandHeight - self.curRightHandHeight)
