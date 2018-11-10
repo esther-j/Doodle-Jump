@@ -45,16 +45,11 @@ class Doodle(object):
     # Function to check if doodle has landed on a platform    
     def distance(self, blockList):
         for block in set(blockList):
-            if abs(self.cx-block.cx) < block.width/9*4:
-                
-                # Since iterating through platforms take time, modify the 
-                # checking bounds for platforms on top and bottom
-                
-                if self.cy <= block.cy-block.height/2-self.r \
-                and self.cy >= block.cy - block.height/2-3.2*self.r:
-                    return True
-
-        return False
+            surfaceY = block.cy-block.height/2-self.r
+            if self.cy <= surfaceY and self.cy + self.speedY >= surfaceY and \
+                abs(self.cx-block.cx) < block.width/2:
+                return surfaceY
+        return None
     
     # Draw the doodle character    
     def drawEyes(self, canvas):
@@ -173,6 +168,7 @@ def init(data):
     data.timerCalled = 0
     data.bg = Background(data.doodle)
     data.playing = True
+    data.hit = False
     
 # Make sure the first platform isn't too skewed from the center        
 def firstPlatform(data):
@@ -297,25 +293,29 @@ def playGameTimerFired(data):
     if data.timeOnPlatform < 6:
         data.timeOnPlatform += 1
     if data.playing:
+        data.hit = False
         data.timerCalled += 1
         # Check whether doodle lands on a platform
-        if data.doodle.distance(data.platforms) and data.doodle.speedY > 0:
-            data.timeOnPlatform = 0
-            data.doodle.speedY = data.doodle.jumpSpeed
-            data.score += 1    # Update data score once doodle lands on platform
-            
-        # Doodle drops due to constance gravity
-        data.doodle.speedY += data.doodle.grav
-        data.doodle.cy += data.doodle.speedY
-        data.doodle.cx += data.doodle.speedX
-        data.scroll += 3
+        if data.doodle.speedY > 0:
+            height = data.doodle.distance(data.platforms)
+            if height:
+                data.timeOnPlatform = -1
+                data.doodle.speedY = data.doodle.jumpSpeed
+                data.score += 1    # Update data score once doodle lands on platform
+                data.doodle.cy = height
+                data.hit = True
+        
+        if not data.hit:    
+            # Doodle drops due to constance gravity
+            data.doodle.speedY += data.doodle.grav
+            data.doodle.cy += data.doodle.speedY
+            data.doodle.cx += data.doodle.speedX
+            data.scroll += 3
         
         # Wrap around
         if data.doodle.cx < 0:
-            print("checking")
             data.doodle.cx = data.width
         elif data.doodle.cx > data.width:
-            print("checking again")
             data.doodle.cx = 0
         
         # Check whether player has lost:
