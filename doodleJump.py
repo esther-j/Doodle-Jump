@@ -1,4 +1,3 @@
-
 import random
 from tkinter import * 
 
@@ -195,8 +194,8 @@ def firstPlatform(data):
  
 # Generate rest of platforms
 def createPlatform(data, platformNum):
-    cx = random.randint(data.widthPlatform//2, \
-            data.width - data.widthPlatform//2)
+    cx = random.randint(data.widthPlatform/2, \
+            data.width - data.widthPlatform/2)
     cy = platformNum * data.space
     platformType = random.choice([Platforms, Platforms, Platforms, PowerUp, MovingPlatforms])
     return platformType(cx, cy)      
@@ -360,8 +359,8 @@ def playGameRedrawAll(canvas, data):
         platform.draw(canvas)
         if type(platform) == MovingPlatforms:
             platform.cx += platform.speed
-            if platform.cx + platform.width / 2 > data.width or \
-            platform.cx - platform.width/2 <= 0:
+            if (platform.cx + platform.width / 2 > data.width and platform.speed > 0) or \
+            (platform.cx - platform.width/2 <= 0 and platform.speed < 0):
                 platform.speed *= -1
     data.doodle.draw(canvas)
     canvas.create_text(10, 10, text = "Score: "+str(data.score), \
