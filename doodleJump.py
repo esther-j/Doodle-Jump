@@ -25,7 +25,17 @@ class PowerUp(Platforms):
         super().__init__(cx, cy)
         self.color = "blue"
 
-    
+class MovingPlatforms(Platforms):
+    def __init__(self, cx, cy):
+        super().__init__(cx, cy)
+        self.color = "pink"
+        self.speed = random.randint(3, 7)
+        
+class BreakingPlatforms(Platforms):
+    def __init__(self, cx, cy):
+        super().__init__(cx, cy)
+        self.color = "Red"   
+         
 # Doodle character class    
 class Doodle(object):
 #     
@@ -49,7 +59,7 @@ class Doodle(object):
             surfaceY = block.cy-block.height/2-self.r
             if self.cy <= surfaceY and self.cy + self.speedY >= surfaceY and \
                 abs(self.cx-block.cx) < block.width/2:
-                if type(block) == Platforms:
+                if type(block) == Platforms or type(block) == MovingPlatforms:
                     self.jumpSpeed = -35
                 elif type(block) == PowerUp:
                     self.jumpSpeed = -55
@@ -185,10 +195,10 @@ def firstPlatform(data):
  
 # Generate rest of platforms
 def createPlatform(data, platformNum):
-    cx = random.randint(data.widthPlatform // 2, \
-            data.width - data.widthPlatform // 2)
+    cx = random.randint(data.widthPlatform//2, \
+            data.width - data.widthPlatform//2)
     cy = platformNum * data.space
-    platformType = random.choice([Platforms, Platforms, PowerUp])
+    platformType = random.choice([Platforms, Platforms, Platforms, PowerUp, MovingPlatforms])
     return platformType(cx, cy)      
 
     
@@ -348,6 +358,11 @@ def playGameRedrawAll(canvas, data):
     data.bg.draw(data, canvas)
     for platform in data.platforms:
         platform.draw(canvas)
+        if type(platform) == MovingPlatforms:
+            platform.cx += platform.speed
+            if platform.cx + platform.width / 2 > data.width or \
+            platform.cx - platform.width/2 <= 0:
+                platform.speed *= -1
     data.doodle.draw(canvas)
     canvas.create_text(10, 10, text = "Score: "+str(data.score), \
                     anchor = NW, font = "Ariel 20 bold")
@@ -379,7 +394,7 @@ def endGameKeyPressed(event, data):
     
 def endGameRedrawAll(canvas, data):
     canvas.create_text(data.width/2, data.height/2, 
-                        text = "You Lose!!!\nFinalScore: " + str(data.score) + \
+                        text = "You Lose!!!\nFinal Score: " + str(data.score) + \
                         "\nPress 'r' to restart the game", 
                         font = "Arial "+str(int(data.width/15))+" bold", 
                         fill = 'black')
@@ -400,6 +415,7 @@ def helpScreenMousePressed(event, data):
 def helpScreenRedrawAll(canvas, data):
     samplePlatform = Platforms(data.width/6, data.height/3)
     samplePowerUp = PowerUp(data.width/6, samplePlatform.cy + samplePlatform.height * 2)
+    sampleMoving = MovingPlatforms(data.width/6, samplePowerUp.cy + samplePowerUp.height * 2)
     canvas.create_text(data.width/2, data.height/2, 
     text = "Use Left/Right keys to move the ball and stop it from falling!\nPress 'r' to go back to startScreen", font = "Ariel 15 bold")
     samplePlatform.draw(canvas)
@@ -408,6 +424,10 @@ def helpScreenRedrawAll(canvas, data):
     samplePowerUp.draw(canvas)
     canvas.create_text(samplePowerUp.cx + samplePowerUp.width/2, samplePowerUp.cy,
     text = "     Power Up: Jumps higher than normal platform", 
+    font = "Ariel 15 bold", anchor = W)
+    sampleMoving.draw(canvas)
+    canvas.create_text(sampleMoving.cx + sampleMoving.width/2, sampleMoving.cy,
+    text = "     Moving Platform: Moves in left/right direction", 
     font = "Ariel 15 bold", anchor = W)
 
 
