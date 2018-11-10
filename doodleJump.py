@@ -183,6 +183,15 @@ def playGameKeyPressed(event, data):
             data.doodle.speedX = -20
     elif event.keysym == "r":
         data.mode = 'startScreen'
+        data.timeOnPlatform = 6
+        data.score = 0
+        data.scroll = 0
+        data.platforms = []
+        for platformNum in range(data.numPlatforms-1):
+            data.platforms.append(createPlatform(data, platformNum))
+        data.platforms.append(firstPlatform(data))
+        data.timerCalled = 0
+        data.playing = True
 
 def playGameMousePressed(event, data):
     pass
