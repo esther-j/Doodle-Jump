@@ -19,7 +19,9 @@ class GameRuntime(object):
         self.screenHeight = 1080
         self.moveRight = False
         self.moveLeft = False
-        
+        self.start = True
+        self.leftStart = 0
+        self.rightStart = 0
         self.prevRightHandHeight = 0
         self.prevLeftHandHeight = 0
         self.curRightHandHeight = 0
@@ -59,6 +61,7 @@ class GameRuntime(object):
         # -------- Main Program Loop -----------
         while not self.done:
             # --- Main event loop
+
             if self.gameover:
                 font = pygame.font.Font(None, 36)
                 text = font.render("Game over!", 1, (0, 0, 0))
@@ -91,6 +94,19 @@ class GameRuntime(object):
                         if joints[PyKinectV2.JointType_HandRight].TrackingState != PyKinectV2.TrackingState_NotTracked:
                             self.curRightHandHeight = joints[PyKinectV2.JointType_HandRight].Position.y
 
+                      #  if self.start:
+                      #      self.start = False
+                      #      self.rightStart = self.curRightHandHeight
+                      #      self.leftStart = self.curLeftHandHeight
+#
+ #                       if self.curRightHandHeight > self.rightStart:
+ #                           print("right")
+ #                       elif self.curLeftHandHeight > self.leftStart:
+ #                           print("left")
+ #                       else:
+ #                           print("nop")
+
+
                         # calculate wing flap
                         self.rightFlap = (self.prevRightHandHeight - self.curRightHandHeight)
                         self.leftFlap = (self.prevLeftHandHeight - self.curLeftHandHeight)
@@ -109,8 +125,13 @@ class GameRuntime(object):
                         else:
                             self.moveRight = False
                             self.moveLeft = False
-                        print("left flap", self.moveLeft)
-                        print("right flap", self.moveRight)
+
+                        if self.moveLeft == True and self.moveRight == False:
+                            print("move left")
+                        elif self.moveRight == True and self.moveLeft == False:
+                            print("move right")
+                       # print("left flap", self.moveLeft)
+                       # print("right flap", self.moveRight)
                             
 
                         # cycle previous and current heights for next time
